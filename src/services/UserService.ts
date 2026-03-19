@@ -1,8 +1,8 @@
 import type { Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import UserRepository from '../repositories/UserRepository.js';
-import { User } from '../generated/prisma/client.js';
 import { HttpException } from '../utils/httpException.js';
+import type { CreateUserInput, UpdateUserInput } from '../Validations/UserValidation.js';
 
 const userRepository = new UserRepository();
 
@@ -30,12 +30,12 @@ export default class UserService {
     return await this.userRepository.findByKey(key, value);
   }
 
-  async create(data: any) {
+  async create(data: CreateUserInput) {
     const hashedPassword = await bcrypt.hash(data.password, 10)
     return await this.userRepository.create({...data, password: hashedPassword});
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: UpdateUserInput) {
     await this.findById(id);
     if (data.password)
       data.password = await bcrypt.hash(data.password, 10)
