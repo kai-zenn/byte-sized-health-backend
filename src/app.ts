@@ -1,4 +1,6 @@
 import express from "express";
+// import helmet from "helmet";
+// import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -11,6 +13,7 @@ const App = express();
 dotenv.config();
 
 /* Middleware */
+// App.use(helmet());
 App.use(cors({
   origin: process.env.CORS_ORIGIN || "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -20,6 +23,11 @@ App.use(cors({
 App.use(cookieParser());
 App.use(express.json());
 App.use(express.urlencoded({ extended: true }));
+// if (process.env.NODE_ENV === "development") {
+//   App.use(morgan("dev"));
+// } else {
+//   App.use(morgan("combined")); // or use pino/winston in production
+// }
 
 /* Routes */
 App.use("/api", AppRoutes)
