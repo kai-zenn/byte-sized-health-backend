@@ -25,7 +25,7 @@ enum TrendDirection {
   DECREASING
 }
 
-enum Roles {
+enum Role {
   ADMIN
   USER
 }
@@ -38,7 +38,7 @@ model User{
     phone         String         @unique
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
-    role          Roles          @default(USER)
+    role          Role           @default(USER)
 
     checkIns         DailyCheckIn[]
     weeklyReports    WeeklyReport[]
