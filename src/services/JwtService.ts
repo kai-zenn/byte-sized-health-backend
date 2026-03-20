@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { Role } from "@prisma/client";
 import { HttpException } from "../utils/httpException.js";
 import dotenv from "dotenv";
 
@@ -9,10 +10,16 @@ export type AuthToken = {
   refreshToken: string;
 }
 
+export type JwtPayload = {
+  userId: string;
+  email: string;
+  role: Role;
+}
+
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env as { [key: string]: string };
 
 export class JwtService {
-  genAuthTokens(payload: object): AuthToken {
+  genAuthTokens(payload: JwtPayload): AuthToken {
     const accessToken = this.sign(payload, ACCESS_TOKEN_SECRET, {
       expiresIn: ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"]
     });
@@ -21,16 +28,20 @@ export class JwtService {
     });
     return { accessToken, refreshToken };
   }
-  async verify(token: string, secret: string): Promise<jwt.JwtPayload> {
-    const decoded: jwt.JwtPayload = await new Promise((resolve, reject) => {
+  async verify(token: string, secret: string): Promise<JwtPayload> {
+    const decoded: JwtPayload = await new Promise((resolve, reject) => {
       jwt.verify(token, secret, (err, decoded) => {
-        if (err) reject(new HttpException(403, "Forbidden"));
-        else resolve(decoded as jwt.JwtPayload)
+        if (err) {
+          console.log('JWT Verify Error:', err.message);
+          reject(new HttpException(403, `Token verification failed: ${err.message}`));
+        } else {
+          resolve(decoded as JwtPayload);
+        }
       });
     });
     return decoded;
   }
-  sign(payload: object, secret: string, options?: jwt.SignOptions): string {
+  sign(payload: JwtPayload, secret: string, options?: jwt.SignOptions): string {
     return jwt.sign(payload, secret, options);
   }
 }
