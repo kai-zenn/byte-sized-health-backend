@@ -76,7 +76,7 @@ export default class AuthService {
 
     const newUser = await this.userService.create(createUserData);
 
-    // Generate tokens with userId, email, role
+    // Generate tokens dengan userId, email, role
     const { id, email, role } = newUser;
     const { accessToken, refreshToken } = this.jwtService.genAuthTokens({
       userId: id,
