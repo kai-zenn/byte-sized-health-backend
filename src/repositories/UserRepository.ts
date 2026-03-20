@@ -8,7 +8,17 @@ export default class UserRepository {
   }
 
   async findAll() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
   async findById(id: string) {
     return await this.prisma.user.findUnique({ where: { id } });
