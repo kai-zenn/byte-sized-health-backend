@@ -30,6 +30,12 @@ enum Role {
   USER
 }
 
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model User{
     id            String         @id @default(uuid()) @db.Uuid
     email         String         @unique
@@ -69,16 +75,17 @@ model RefreshToken {
 model DailyCheckIn {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
-  date      DateTime @db.Date // Store as DATE only, not timestamp
+  date      DateTime @db.Date
 
   // User Input Data
   sleepHours     Float    // Jam tidur (e.g., 7.5)
   workHours      Float    // Jam kerja (e.g., 8.0)
-  moodLevel      Int      // 1-10 scale
-  stressLevel    Int      // 1-10 scale
+  moodLevel      Int      // 1-10
+  stressLevel    Int      // 1-10
   notes          String?  @db.Text
 
-  // // Calculated Metrics (computed by backend)
+  // // Calculated Metrics, still dont know how to calculate it lol,
+  // // whether with LLM or manually in the backend logic, ffs
   // burnoutScore   Float    // Calculated score
   riskLevel      RiskLevel // LOW, MEDIUM, HIGH
 
@@ -127,7 +134,7 @@ model MonthlyReport {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
   month     Int      // 1-12
-  year      Int      // 2025
+  year      Int      // 2026
 
   // Aggregated Metrics
   avgBurnoutScore    Float
@@ -155,4 +162,75 @@ model MonthlyReport {
   @@unique([userId, year, month])
   @@index([userId, year, month])
   @@map("monthly_reports")
+}
+
+model Article {
+  id            String         @id @default(uuid()) @db.Uuid
+  title         String
+  slug          String         @unique // URL-friendly (auto-generated dari title)
+  description   String?        @db.Text // Short summary untuk preview
+  content       String         @db.Text // Rich HTML content dari editor
+  thumbnail     String?        // URL/path ke thumbnail image
+  sources       Json?          // Array of sources: [{title: "...", url: "..."}]
+
+  status        ArticleStatus  @default(DRAFT)
+  publishedAt   DateTime?      // Null if draft, set when published
+
+  // Metadata
+  authorId      String         @db.Uuid
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  viewCount     Int            @default(0)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  images        ArticleImage[] // Track semua images yang di-upload untuk artikel ini
+  categories    ArticleCategory[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([status, publishedAt])
+  @@map("articles")
+}
+
+model ArticleImage {
+  id          String   @id @default(uuid()) @db.Uuid
+  articleId   String   @db.Uuid
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  filename    String   // Original filename
+  path        String   // Path/URL to stored image
+  size        Int      // File size in bytes
+  mimeType    String   // image/jpeg, image/png, etc
+
+  uploadedAt  DateTime @default(now())
+
+  @@index([articleId])
+  @@map("article_images")
+}
+
+model Category {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String            @unique
+  slug        String            @unique
+  description String?
+
+  articles    ArticleCategory[]
+
+  createdAt   DateTime          @default(now())
+
+  @@map("categories")
+}
+
+model ArticleCategory {
+  articleId   String   @db.Uuid
+  categoryId  String   @db.Uuid
+
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, categoryId])
+  @@map("article_categories")
 }
