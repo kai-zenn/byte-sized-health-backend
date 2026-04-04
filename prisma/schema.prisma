@@ -50,6 +50,7 @@ model User{
     weeklyReports    WeeklyReport[]
     monthlyReports   MonthlyReport[]
     refreshTokens    RefreshToken[]
+    articles        Article[]
 
     @@index([email])
     @@map("users")
