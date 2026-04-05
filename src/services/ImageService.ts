@@ -9,7 +9,10 @@ export default class ImageService {
   private readonly CONTENT_IMAGE_MAX_WIDTH = 1200;
 
   async processThumbnail(filePath: string): Promise<string> {
-    const outputPath = filePath.replace(/(\.[^.]+)$/, '-thumb$1');
+    const dir = path.dirname(filePath);
+    const ext = path.extname(filePath);
+    const basename = path.basename(filePath, ext);
+    const outputPath = path.join(dir, `${basename}-thumb.jpg`);
 
     await sharp(filePath)
       .resize(this.THUMBNAIL_WIDTH, this.THUMBNAIL_HEIGHT, {
@@ -19,14 +22,16 @@ export default class ImageService {
       .jpeg({ quality: 85 })
       .toFile(outputPath);
 
-    // Delete original, keep optimized version
     await fs.unlink(filePath);
 
     return outputPath;
   }
 
   async processContentImage(filePath: string): Promise<string> {
-    const outputPath = filePath.replace(/(\.[^.]+)$/, '-optimized$1');
+    const dir = path.dirname(filePath);
+    const ext = path.extname(filePath);
+    const basename = path.basename(filePath, ext);
+    const outputPath = path.join(dir, `${basename}-opt.jpg`);
 
     await sharp(filePath)
       .resize(this.CONTENT_IMAGE_MAX_WIDTH, null, {
@@ -50,6 +55,12 @@ export default class ImageService {
   }
 
   getPublicUrl(filePath: string): string {
-    return filePath.replace('uploads/', '/uploads/');
+    return `/${filePath.replace(/\\/g, '/')}`;
+  }
+
+  extractFirstImageFromHtml(html: string): string | null {
+    const imgRegex = /<img[^>]+src="([^">]+)"/i;
+    const match = html.match(imgRegex);
+    return match ? match[1] : null;
   }
 }
