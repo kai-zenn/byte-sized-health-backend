@@ -1,6 +1,7 @@
 import express from "express";
 // import helmet from "helmet";
 // import morgan from "morgan";
+import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -28,6 +29,9 @@ App.use(express.urlencoded({ extended: true }));
 // } else {
 //   App.use(morgan("combined")); // or use pino/winston in production
 // }
+
+// Serve static files (uploaded images)
+App.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 /* Routes */
 App.use("/api", AppRoutes)
