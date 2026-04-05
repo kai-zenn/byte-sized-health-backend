@@ -19,6 +19,14 @@ export default class ArticleController {
         throw new HttpException(401, 'Unauthorized');
       }
 
+      if (typeof req.body.sources === 'string') {
+        try {
+          req.body.sources = JSON.parse(req.body.sources);
+        } catch (e) {
+          req.body.sources = []; // Atau handle error jika JSON gak valid
+        }
+      }
+
       const thumbnailFile = req.file;
       const article = await this.articleService.create(
         req.user.userId,
