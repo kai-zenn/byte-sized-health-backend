@@ -15,6 +15,12 @@ export enum Permission {
   // Report permissions
   READ_OWN_REPORTS = 'read:own:reports',
 
+  // Article permissions
+  CREATE_ARTICLE = 'create:article',
+  UPDATE_ARTICLE = 'update:article',
+  DELETE_ARTICLE = 'delete:article',
+  READ_ALL_ARTICLES = 'read:all:articles',
+
   // Admin permissions
   READ_ALL_USERS = 'read:all:users',
   CREATE_USER = 'create:user',
