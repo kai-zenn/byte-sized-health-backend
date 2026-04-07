@@ -85,7 +85,6 @@ export default class ArticleService {
       throw new HttpException(404, 'Article not found');
     }
 
-    // Increment view count (async, don't wait)
     this.articleRepository.incrementViewCount(article.id).catch(console.error);
 
     return article;
@@ -129,7 +128,6 @@ export default class ArticleService {
     }
 
     if (thumbnailFile) {
-      // Delete old thumbnail if exists
       if (existingArticle.thumbnail) {
         const oldPath = existingArticle.thumbnail.replace(/^\//, '');
         await this.imageService.deleteImage(oldPath);
@@ -163,7 +161,6 @@ export default class ArticleService {
   async delete(id: string) {
     const article = await this.findById(id);
 
-    // Delete thumbnail
     if (article.thumbnail) {
       const thumbnailPath = article.thumbnail.replace(/^\//, '');
       await this.imageService.deleteImage(thumbnailPath);

@@ -23,7 +23,7 @@ export default class ArticleController {
         try {
           req.body.sources = JSON.parse(req.body.sources);
         } catch (e) {
-          req.body.sources = []; // Atau handle error jika JSON gak valid
+          req.body.sources = []; // akan handle error jika JSON gak valid
         }
       }
 

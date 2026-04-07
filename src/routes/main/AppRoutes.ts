@@ -10,7 +10,7 @@ const authMiddleware = new Auth();
 // Auth routes (public)
 router.use("/auth", AuthRoutes);
 
-// User routes (protected - authentication required)
+// protected - authentication required
 router.use(
   "/users",
   authMiddleware.verifyToken.bind(authMiddleware),
