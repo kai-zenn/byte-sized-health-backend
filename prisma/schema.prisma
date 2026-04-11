@@ -83,12 +83,17 @@ model DailyCheckIn {
   workHours      Float    // Jam kerja (e.g., 8.0)
   moodLevel      Int      // 1-10
   stressLevel    Int      // 1-10
+  activityMinutes Int     @default(0)
   notes          String?  @db.Text
 
   // // Calculated Metrics, still dont know how to calculate it lol,
-  // // whether with LLM or manually in the backend logic, ffs
-  // burnoutScore   Float    // Calculated score
+  // // Whether with LLM or manually in the backend logic, ffs
+  burnoutScore   Float    // Calculated score, Im trying to integrate it with LLM
   riskLevel      RiskLevel // LOW, MEDIUM, HIGH
+
+  // LLM Analysis Result
+   llmAnalysis     String?  @db.Text  // JSON string dari AI /analyze
+   llmInsights     String?  @db.Text  // Insights tambahan
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
