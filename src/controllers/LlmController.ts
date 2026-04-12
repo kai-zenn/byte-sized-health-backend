@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
-import AIService from '../services/LlmService.js';
+import LlmService from '../services/LlmService.js';
 import { AuthRequest } from '../middlewares/Auth.js';
 import { HttpException } from '../utils/httpException.js';
 
-const aiService = new AIService();
+const llmService = new LlmService();
 
-export default class AIController {
-  private aiService: AIService;
+export default class LlmController {
+  private llmService: LlmService;
 
   constructor() {
-    this.aiService = aiService;
+    this.llmService = llmService;
   }
 
   async chat(req: Request, res: Response, next: NextFunction) {
@@ -20,7 +20,7 @@ export default class AIController {
         throw new HttpException(400, 'Message is required');
       }
 
-      const response = await this.aiService.chat(message);
+      const response = await this.llmService.chat(message);
 
       res.json({
         success: true,
@@ -50,7 +50,7 @@ export default class AIController {
         activity_minutes: activity_minutes || 0,
       };
 
-      const analysis = await this.aiService.analyze(analysisData);
+      const analysis = await this.llmService.analyze(analysisData);
 
       res.json({
         success: true,
@@ -71,7 +71,7 @@ export default class AIController {
       }
 
       const days = parseInt(req.query.days as string) || 7;
-      const history = await this.aiService.getHistory(req.user.userId, days);
+      const history = await this.llmService.getHistory(req.user.userId, days);
 
       res.json({
         success: true,
@@ -91,7 +91,7 @@ export default class AIController {
         throw new HttpException(401, 'Unauthorized');
       }
 
-      const pattern = await this.aiService.getPattern(req.user.userId);
+      const pattern = await this.llmService.getPattern(req.user.userId);
 
       res.json({
         success: true,
@@ -110,7 +110,7 @@ export default class AIController {
         throw new HttpException(401, 'Unauthorized');
       }
 
-      const insight = await this.aiService.getWeeklyInsight(req.user.userId);
+      const insight = await this.llmService.getWeeklyInsight(req.user.userId);
 
       res.json({
         success: true,
@@ -129,7 +129,7 @@ export default class AIController {
         throw new HttpException(401, 'Unauthorized');
       }
 
-      const burnoutCheck = await this.aiService.getBurnoutCheck(req.user.userId);
+      const burnoutCheck = await this.llmService.getBurnoutCheck(req.user.userId);
 
       res.json({
         success: true,
@@ -148,7 +148,7 @@ export default class AIController {
         throw new HttpException(401, 'Unauthorized');
       }
 
-      const riskAlert = await this.aiService.getRiskAlert(req.user.userId);
+      const riskAlert = await this.llmService.getRiskAlert(req.user.userId);
 
       res.json({
         success: true,
@@ -167,7 +167,7 @@ export default class AIController {
         throw new HttpException(401, 'Unauthorized');
       }
 
-      const recommendations = await this.aiService.getRecommendations(req.user.userId);
+      const recommendations = await this.llmService.getRecommendations(req.user.userId);
 
       res.json({
         success: true,

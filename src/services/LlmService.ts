@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import NodeCache from 'node-cache';
-import { aiConfig } from '../configs/llmConf.js';
+import { llmConfig } from '../configs/llmConf.js';
 import { HttpException } from '../utils/httpException.js';
 
 export interface ChatRequest {
@@ -15,14 +15,14 @@ export interface AnalyzeRequest {
   activity_minutes: number;
 }
 
-export default class AIService {
+export default class LlmService {
   private client: AxiosInstance;
   private cache: NodeCache;
 
   constructor() {
     this.client = axios.create({
-      baseURL: aiConfig.baseUrl,
-      timeout: aiConfig.timeout,
+      baseURL: llmConfig.baseUrl,
+      timeout: llmConfig.timeout,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -46,7 +46,7 @@ export default class AIService {
           config.retry = 0;
         }
 
-        if (config.retry >= aiConfig.retries) {
+        if (config.retry >= llmConfig.retries) {
           return Promise.reject(error);
         }
 
