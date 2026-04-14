@@ -1,19 +1,19 @@
 import CheckInRepository from '../repositories/CheckInRepository.js';
-import AIService from './LlmService.js';
+import LlmService from './LlmService.js';
 import { HttpException } from '../utils/httpException.js';
 import { calculateBurnoutScore } from '../utils/BurntOutUtils.js';
 import type { CreateCheckInInput, UpdateCheckInInput } from '../Validations/CheckInValidation.js';
 
 const checkInRepository = new CheckInRepository();
-const aiService = new AIService();
+const llmService = new LlmService();
 
 export default class CheckInService {
   private checkInRepository: CheckInRepository;
-  private aiService: AIService;
+  private llmService: LlmService;
 
   constructor() {
     this.checkInRepository = checkInRepository;
-    this.aiService = aiService;
+    this.llmService = llmService;
   }
 
   async create(userId: string, data: CreateCheckInInput) {
@@ -40,8 +40,8 @@ export default class CheckInService {
       stressLevel: data.stressLevel,
       activityMinutes: data.activityMinutes,
       notes: data.notes,
-      burnoutScore,
-      riskLevel,
+      llmBurnoutScore: burnoutScore,
+      llmRiskLevel: riskLevel,
       user: {
         connect: { id: userId },
       },
@@ -53,6 +53,45 @@ export default class CheckInService {
 
     return checkIn;
   }
+
+  private async processWithAI(checkIn: any) {
+      try {
+        // Step 1: Send data to LLM for analysis
+        const analysisPromise = this.llmService.analyze({
+          user_id: checkIn.userId,
+          sleep_hours: checkIn.sleepHours,
+          work_hours: checkIn.workHours,
+          stress_level: checkIn.stressLevel,
+          activity_minutes: checkIn.activityMinutes,
+        });
+
+        // Step 2: Get burnout check
+        const burnoutCheckPromise = this.llmService.getBurnoutCheck(checkIn.userId);
+
+        // Step 3: Get recommendations
+        const recommendationsPromise = this.llmService.getRecommendations(checkIn.userId);
+
+        // Wait for all LLM calls
+        const [analysis, burnoutCheck, recommendations] = await Promise.all([
+          analysisPromise,
+          burnoutCheckPromise,
+          recommendationsPromise,
+        ]);
+
+        // Update check-in with LLM results
+        await this.checkInRepository.update(checkIn.id, {
+          llmBurnoutScore: burnoutCheck.burnoutScore,
+          llmAnalysis: analysis,
+          llmRiskLevel: burnoutCheck.riskLevel,
+          llmRecommendations: recommendations,
+          llmProcessedAt: new Date(),
+        });
+
+        console.log(`AI processing completed for check-in ${checkIn.id}`);
+      } catch (error) {
+        console.error('AI processing error:', error);
+      }
+    }
 
   async findByUserId(userId: string, days?: number) {
     const options: any = {};
@@ -137,13 +176,13 @@ export default class CheckInService {
   }
 
   async delete(id: string, userId: string) {
-    await this.findById(id, userId); // Check ownership
+    await this.findById(id, userId);
     await this.checkInRepository.delete(id);
   }
 
   private async analyzeWithAI(checkIn: any) {
     try {
-      const analysis = await this.aiService.analyze({
+      const analysis = await this.llmService.analyze({
         user_id: checkIn.userId,
         sleep_hours: checkIn.sleepHours,
         work_hours: checkIn.workHours,

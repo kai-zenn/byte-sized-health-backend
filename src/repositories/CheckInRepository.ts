@@ -147,7 +147,7 @@ export default class CheckInRepository {
       return null;
     }
 
-    const avgBurnoutScore = checkIns.reduce((sum, ci) => sum + ci.burnoutScore, 0) / checkIns.length;
+    const avgBurnoutScore = checkIns.reduce((sum, ci) => sum + ci.llmBurnoutScore, 0) / checkIns.length;
     const avgMoodLevel = checkIns.reduce((sum, ci) => sum + ci.moodLevel, 0) / checkIns.length;
     const avgStressLevel = checkIns.reduce((sum, ci) => sum + ci.stressLevel, 0) / checkIns.length;
     const avgSleepHours = checkIns.reduce((sum, ci) => sum + ci.sleepHours, 0) / checkIns.length;
