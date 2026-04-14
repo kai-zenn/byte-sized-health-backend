@@ -4,6 +4,7 @@ import { AuthRoutes } from "../AuthRoutes.js";
 import { ArticleRoutes } from "../ArticlesRoutes.js";
 import Auth from "../../middlewares/Auth.js";
 import { LlmRoutes } from "../LlmRoutes.js";
+import { CheckInRoutes } from "../CheckInRoutes.js";
 
 const router = Router();
 const authMiddleware = new Auth();
@@ -23,5 +24,9 @@ router.use("/articles", ArticleRoutes);
 
 // LLM integration routes
 router.use("/llm", LlmRoutes);
+
+// User daily check-in route
+router.use("/check-ins", CheckInRoutes);
+
 
 export { router as AppRoutes };
