@@ -88,12 +88,11 @@ model DailyCheckIn {
 
   // // Calculated Metrics, still dont know how to calculate it lol,
   // // Whether with LLM or manually in the backend logic, ffs
-  burnoutScore   Float    // Calculated score, Im trying to integrate it with LLM
-  riskLevel      RiskLevel // LOW, MEDIUM, HIGH
-
-  // LLM Analysis Result
-   llmAnalysis     String?  @db.Text  // JSON string dari AI /analyze
-   llmInsights     String?  @db.Text  // Insights tambahan
+  llmBurnoutScore    Float    // Calculated score, Im trying to integrate it with LLM
+  llmRiskLevel       RiskLevel // LOW, MEDIUM, HIGH
+  llmAnalysis        String? @db.Text
+  llmRecommendations String? @db.Text
+  llmProcessedAt     DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
