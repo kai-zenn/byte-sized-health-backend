@@ -1,15 +1,15 @@
 import { Router } from 'express';
-import AIController from '../controllers/LlmController.js';
 import Auth from '../middlewares/Auth.js';
+import LlmController from '../controllers/LlmController.js';
 
 const router = Router();
-const aiController = new AIController();
+const llmController = new LlmController();
 const auth = new Auth();
 
 // Public chat endpoint
 /**
  * @swagger
- * /ai/chat:
+ * /llm/chat:
  *   post:
  *     summary: Chat with AI assistant
  *     tags: [AI]
@@ -43,13 +43,13 @@ const auth = new Auth();
  *                     response:
  *                       type: string
  */
-router.post('/chat', aiController.chat.bind(aiController));
+router.post('/chat', llmController.chat.bind(llmController));
 
 
 // Protected endpoints - require authentication, only for user already creating/login an account
 /**
  * @swagger
- * /ai/analyze:
+ * /llm/analyze:
  *   post:
  *     summary: Analyze health data with AI
  *     tags: [AI]
@@ -63,15 +63,15 @@ router.post('/chat', aiController.chat.bind(aiController));
  *             type: object
  *             required:
  *               - sleep_hours
- *               - work_hours
+ *               - mood_score
  *               - stress_level
  *             properties:
  *               sleep_hours:
  *                 type: number
  *                 example: 6
- *               work_hours:
+ *               mood_score:
  *                 type: number
- *                 example: 10
+ *                 exampple: 8
  *               stress_level:
  *                 type: integer
  *                 example: 8
@@ -85,31 +85,31 @@ router.post('/chat', aiController.chat.bind(aiController));
 router.post(
   '/analyze',
   auth.verifyToken.bind(auth),
-  aiController.analyze.bind(aiController)
+  llmController.analyze.bind(llmController)
 );
 
 
 router.get(
   '/history',
   auth.verifyToken.bind(auth),
-  aiController.getHistory.bind(aiController)
+  llmController.getHistory.bind(llmController)
 );
 
 router.get(
   '/pattern',
   auth.verifyToken.bind(auth),
-  aiController.getPattern.bind(aiController)
+  llmController.getPattern.bind(llmController)
 );
 
 router.get(
   '/weekly-insight',
   auth.verifyToken.bind(auth),
-  aiController.getWeeklyInsight.bind(aiController)
+  llmController.getWeeklyInsight.bind(llmController)
 );
 
 /**
  * @swagger
- * /ai/burnout-check:
+ * /llm/burnout-check:
  *   get:
  *     summary: Get burnout check from AI
  *     tags: [AI]
@@ -120,20 +120,20 @@ router.get(
  *         description: Burnout assessment
  */
 router.get(
-  '/burnout-check',
+  '/burnout-check/:userId',
   auth.verifyToken.bind(auth),
-  aiController.getBurnoutCheck.bind(aiController)
+  llmController.getBurnoutCheck.bind(llmController)
 );
 
 router.get(
   '/risk-alert',
   auth.verifyToken.bind(auth),
-  aiController.getRiskAlert.bind(aiController)
+  llmController.getRiskAlert.bind(llmController)
 );
 
 /**
  * @swagger
- * /ai/recommendations:
+ * /llm/recommendations:
  *   get:
  *     summary: Get AI recommendations
  *     tags: [AI]
@@ -144,9 +144,9 @@ router.get(
  *         description: Personalized recommendations
  */
 router.get(
-  '/recommendations',
+  '/recommendations:userId',
   auth.verifyToken.bind(auth),
-  aiController.getRecommendations.bind(aiController)
+  llmController.getRecommendations.bind(llmController)
 );
 
 export { router as LlmRoutes };
