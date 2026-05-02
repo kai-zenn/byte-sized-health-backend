@@ -8,19 +8,34 @@ export interface ChatRequest {
   message: string;
 }
 
-export interface AnalyzeRequest {
-  user_id: string;
-  sleep_hours: number;
-  work_hours: number;
-  stress_level: number;
-  activity_minutes: number;
-}
+  export interface AnalyzeRequest {
+    user_id: string;
+    sleep_hours: number;
+    mood_score: number;
+    stress_level: number;
+    activity_minutes: number;
+  }
 
 export interface BurnoutCheckResult {
   rawResponse: string;
-  burnoutScore?: number;
-  riskLevel?: RiskLevel;
-  insights?: string;
+  burnoutScore: number;
+  riskLevel: RiskLevel;
+  riskScore: number;
+  message: string;
+  indicators: string[];
+}
+
+interface BurnoutApiResponse {
+  user_id: string;
+  burnout: {
+    level: "LOW" | "MEDIUM" | "HIGH";
+    emoji: string;
+    score: number;
+    message: string;
+    indicators: string[];
+  };
+  risk_score: number;
+  ai_response: string;
 }
 
 export default class LlmService {
@@ -86,23 +101,27 @@ export default class LlmService {
       }
     }
 
-    async getBurnoutCheck(userId: string): Promise<BurnoutCheckResult> {
-      try {
-        const response = await this.client.get<string>(`/burnout-check/${userId}`);
-        const rawResponse = response.data;
-
-        // Parse AI response to extract burnout score and risk level
-        const parsed = this.parseBurnoutResponse(rawResponse);
-
-        return {
-          rawResponse,
-          ...parsed,
-        };
-      } catch (error) {
-        this.handleError(error, 'Burnout check failed');
-        throw error;
+      async getBurnoutCheck(userId: string): Promise<BurnoutCheckResult> {
+        try {
+          const response = await this.client.get<BurnoutApiResponse>(`/burnout-check/${userId}`);
+          const data = response.data;
+  
+          // // Parse AI response to extract burnout score and risk level
+          // const parsed = this.parseBurnoutResponse(rawResponse);
+  
+          return {
+            rawResponse: data.ai_response,
+            burnoutScore: data.burnout.score,
+            riskLevel: data.burnout.level,
+            riskScore: data.risk_score,
+            message: data.burnout.message,
+            indicators: data.burnout.indicators,
+          };
+        } catch (error) {
+          this.handleError(error, 'Burnout check failed');
+          throw error;
+        }
       }
-    }
 
     async getRiskAlert(userId: string): Promise<string> {
       try {
@@ -189,36 +208,36 @@ export default class LlmService {
       }
     }
 
-    private parseBurnoutResponse(response: string): {
-      burnoutScore?: number;
-      riskLevel?: RiskLevel;
-      insights?: string;
-    } {
+    // private parseBurnoutResponse(response: string): {
+    //   burnoutScore?: number;
+    //   riskLevel?: RiskLevel;
+    //   insights?: string;
+    // } {
 
-      const result: any = {};
+    //   const result: any = {};
 
-      // Extract burnout score (look for patterns like "score: 65" or "65/100")
-      const scoreMatch = response.match(/(?:score|skor|nilai)[\s:]+(\d+)(?:\/100)?/i);
-      if (scoreMatch) {
-        result.burnoutScore = parseInt(scoreMatch[1]);
-      }
+    //   // Extract burnout score (look for patterns like "score: 65" or "65/100")
+    //   const scoreMatch = response.match(/(?:score|skor|nilai)[\s:]+(\d+)(?:\/100)?/i);
+    //   if (scoreMatch) {
+    //     result.burnoutScore = parseInt(scoreMatch[1]);
+    //   }
 
-      const riskMatch = response.match(/(?:risk|risiko|level)[\s:]+(\w+)/i);
-      if (riskMatch) {
-        const risk = riskMatch[1].toUpperCase();
-        if (risk.includes('HIGH') || risk.includes('TINGGI')) {
-          result.riskLevel = RiskLevel.HIGH;
-        } else if (risk.includes('MEDIUM') || risk.includes('SEDANG')) {
-          result.riskLevel = RiskLevel.MEDIUM;
-        } else if (risk.includes('LOW') || risk.includes('RENDAH')) {
-          result.riskLevel = RiskLevel.LOW;
-        }
-      }
+    //   const riskMatch = response.match(/(?:risk|risiko|level)[\s:]+(\w+)/i);
+    //   if (riskMatch) {
+    //     const risk = riskMatch[1].toUpperCase();
+    //     if (risk.includes('HIGH') || risk.includes('TINGGI')) {
+    //       result.riskLevel = RiskLevel.HIGH;
+    //     } else if (risk.includes('MEDIUM') || risk.includes('SEDANG')) {
+    //       result.riskLevel = RiskLevel.MEDIUM;
+    //     } else if (risk.includes('LOW') || risk.includes('RENDAH')) {
+    //       result.riskLevel = RiskLevel.LOW;
+    //     }
+    //   }
 
-      result.insights = response;
+    //   result.insights = response;
 
-      return result;
-    }
+    //   return result;
+    // }
 
     clearUserCache(userId: string) {
       const keys = this.cache.keys();
@@ -232,11 +251,33 @@ export default class LlmService {
     private handleError(error: any, context: string) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status || 500;
-        const message = error.response?.data?.detail || error.message || context;
+        let message: string;
+    
+        const data = error.response?.data;
+    
+        if (typeof data?.detail === "string") {
+              message = data.detail;
+        
+            } else if (Array.isArray(data?.detail)) {
+              message = data.detail
+                .map((err: any) => {
+                  if (typeof err === "string") return err;
+                  if (err?.msg) return `${err.loc?.join(".")}: ${err.msg}`;
+                  return JSON.stringify(err);
+                })
+                .join(", ");
+        
+            } else if (typeof data?.detail === "object") {
+              message = JSON.stringify(data.detail);
+        
+            } else {
+              message = error.message || context;
+            }
 
         console.error(`[AI Service Error] ${context}:`, {
           status,
           message,
+          raw: data,
           url: error.config?.url,
         });
 
