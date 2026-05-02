@@ -43,6 +43,9 @@ export default class Auth {
       }
 
       console.log('Verifying token...');
+      console.log("AUTH HEADER:", authorization);
+      console.log("TYPE:", type);
+      console.log("TOKEN:", token);
 
       const decoded = await this.jwtService.verify(token, ACCESS_TOKEN_SECRET);
 
