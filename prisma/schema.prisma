@@ -90,6 +90,7 @@ model DailyCheckIn {
   // // Whether with LLM or manually in the backend logic, ffs
   llmBurnoutScore    Float    // Calculated score, Im trying to integrate it with LLM
   llmRiskLevel       RiskLevel // LOW, MEDIUM, HIGH
+  llmRiskScore       Int? @default(0)   
   llmAnalysis        String? @db.Text
   llmRecommendations String? @db.Text
   llmProcessedAt     DateTime?
