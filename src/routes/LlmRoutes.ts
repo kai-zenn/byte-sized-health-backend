@@ -133,18 +133,47 @@ router.get(
 
 /**
  * @swagger
- * /llm/recommendations:
+ * /api/llm/recommendations:
  *   get:
- *     summary: Get AI recommendations
+ *     summary: Get personalized AI recommendations
+ *     description: Retrieve AI-generated health recommendations based on user's data
  *     tags: [AI]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Personalized recommendations
+ *         description: Successfully retrieved recommendations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     recommendations:
+ *                       type: string
+ *                       example: "Halo! Terima kasih sudah berbagi data kesehatanmu..."
+ *       401:
+ *         description: Unauthorized (invalid or missing token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["Unauthorized"]
+ *       500:
+ *         description: Internal server error
  */
 router.get(
-  '/recommendations:userId',
+  '/recommendations/:userId',
   auth.verifyToken.bind(auth),
   llmController.getRecommendations.bind(llmController)
 );
