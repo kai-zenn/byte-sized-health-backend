@@ -40,12 +40,12 @@ export default class LlmController {
         throw new HttpException(401, 'Unauthorized');
       }
 
-      const { sleep_hours, work_hours, stress_level, activity_minutes } = req.body;
+      const { sleep_hours, mood_score, stress_level, activity_minutes } = req.body;
 
       const analysisData = {
         user_id: req.user.userId,
         sleep_hours,
-        work_hours,
+        mood_score,
         stress_level,
         activity_minutes: activity_minutes || 0,
       };
@@ -128,6 +128,8 @@ export default class LlmController {
       if (!req.user) {
         throw new HttpException(401, 'Unauthorized');
       }
+      
+      const userId = req.params.userId;
 
       const burnoutCheck = await this.llmService.getBurnoutCheck(req.user.userId);
 
@@ -167,6 +169,8 @@ export default class LlmController {
         throw new HttpException(401, 'Unauthorized');
       }
 
+      const userId = req.params.userId;
+      
       const recommendations = await this.llmService.getRecommendations(req.user.userId);
 
       res.json({
